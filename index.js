@@ -82,7 +82,15 @@ function getWebSocketUrl(req) {
 
 // Step 1 — NewCall: connect the caller to the bot over a SIP leg.
 function streamXml(params, wsUrl, sipNumber) {
-  const uui = JSON.stringify(params).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/'/g, '&apos;');
+  // Clean, compact JSON context matching PDF spec exactly
+  const cleanUui = {
+    sid: String(params.sid || ''),
+    cid: String(params.cid || params.cid_e164 || ''),
+    called_number: String(params.called_number || ''),
+    operator: String(params.operator || ''),
+    circle: String(params.circle || '')
+  };
+  const uui = JSON.stringify(cleanUui).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/'/g, '&apos;');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <response>
   <start-record></start-record>
@@ -536,17 +544,52 @@ class CallSession {
   }
 }
 
+const recentLogs = [];
+function addLog(msg) {
+  const line = `[${new Date().toISOString()}] ${msg}`;
+  console.log(line);
+  recentLogs.push(line);
+  if (recentLogs.length > 200) recentLogs.shift();
+}
+
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Log every incoming HTTP request for live diagnostics
+app.use((req, res, next) => {
+  addLog(`HTTP ${req.method} ${req.originalUrl}`);
+  next();
+});
 
 app.get('/health', (req, res) =>
   res.json({ ok: true, brain: BRAIN_MODEL, stt: STT_MODEL, tts: TTS_MODEL, transfer: TRANSFER_SKILL || null })
 );
 
+app.get('/recent-logs', (req, res) => {
+  res.json({ count: recentLogs.length, logs: recentLogs });
+});
+
+// If someone opens root URL in browser without call parameters
+app.get('/', (req, res, next) => {
+  if (!req.query.event && !req.body.event) {
+    return res.send(`
+      <h2>KooKoo Groq AI Voicebot is Running</h2>
+      <p>Endpoints:</p>
+      <ul>
+        <li>Webhook: <code>/api/ivr/webhook</code> or <code>/kookoo</code></li>
+        <li>WebSocket: <code>/ws</code></li>
+        <li>Health: <a href="/health">/health</a></li>
+        <li>Recent Logs: <a href="/recent-logs">/recent-logs</a></li>
+      </ul>
+    `);
+  }
+  next();
+});
+
 // IVR call-lifecycle webhook: NewCall -> Stream -> Hangup (all GET, XML replies)
-// Supports /kookoo, /api/ivr/webhook, and /webhook
-app.all(['/kookoo', '/api/ivr/webhook', '/webhook'], (req, res) => {
+// Supports /, /kookoo, /api/ivr/webhook, /webhook, and /ivr
+app.all(['/', '/kookoo', '/api/ivr/webhook', '/webhook', '/ivr'], (req, res) => {
   const params = { ...req.query, ...req.body };
   const sid = params.sid ? String(params.sid) : '';
   const cid = params.cid || params.cid_e164 || '';
@@ -554,32 +597,34 @@ app.all(['/kookoo', '/api/ivr/webhook', '/webhook'], (req, res) => {
     recentCallsByCid.set(String(cid), sid);
   }
 
-  console.log(`[KooKoo IVR] path=${req.path} sid=${sid || '-'} event=${params.event || '-'}`);
+  addLog(`[KooKoo IVR] path=${req.path} sid=${sid || '-'} event=${params.event || '-'} params=${JSON.stringify(params)}`);
   res.set('Content-Type', 'text/xml; charset=utf-8');
 
   // Step 1 — NewCall
   if (params.event === 'NewCall') {
     const isTestPing = !params.sid && !params.cid;
     if (isTestPing) {
-      console.log('[KooKoo IVR] note: portal "Test Application URL" ping (no call follows)');
+      addLog('[KooKoo IVR] note: portal "Test Application URL" ping (no call follows)');
     } else {
-      console.log(
+      addLog(
         `[KooKoo IVR] NewCall caller=${params.cid_e164 || params.cid} did=${params.called_number} ` +
           `operator=${params.operator || '-'} circle=${params.circle || '-'}`
       );
     }
     const wsUrl = getWebSocketUrl(req);
-    return res.send(streamXml(params, wsUrl, SIP_NUMBER));
+    const xml = streamXml(params, wsUrl, SIP_NUMBER);
+    addLog(`[KooKoo IVR] sending NewCall reply XML:\n${xml}`);
+    return res.send(xml);
   }
 
   // Step 2 — Stream
   if (params.event === 'Stream') {
     const action = sid ? pendingActions.get(sid) : null;
-    console.log(
+    addLog(
       `[KooKoo IVR] Stream status=${params.status || '-'} callduration=${params.callduration || '-'}s action=${action ? action.type : 'none'}`
     );
     if (action && action.type === 'transfer' && TRANSFER_SKILL) {
-      console.log(`[KooKoo IVR] transferring sid=${sid} to skill=${TRANSFER_SKILL}`);
+      addLog(`[KooKoo IVR] transferring sid=${sid} to skill=${TRANSFER_SKILL}`);
       return res.send(transferXml(action));
     }
     return res.send(HANGUP_XML);
@@ -588,7 +633,7 @@ app.all(['/kookoo', '/api/ivr/webhook', '/webhook'], (req, res) => {
   // Step 3 — Hangup
   if (params.event === 'Hangup') {
     if (sid) pendingActions.delete(sid);
-    console.log(
+    addLog(
       `[KooKoo IVR] Hangup status=${params.status || '-'} talk=${params.callduration || '-'}s total=${params.total_call_duration || '-'}s ` +
         `recording=${params.call_recording_url || params.data || '-'}`
     );
