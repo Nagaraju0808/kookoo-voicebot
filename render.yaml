@@ -11,5 +11,3 @@ services:
         sync: false
       - key: SIP_NUMBER
         value: "531486"
-      - key: PORT
-        value: "3000"

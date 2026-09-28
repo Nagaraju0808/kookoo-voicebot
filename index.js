@@ -688,8 +688,8 @@ wss.on('connection', (ws, req) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`KooKoo Groq voicebot listening on :${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`KooKoo Groq voicebot listening on 0.0.0.0:${PORT}`);
   console.log(`Webhook endpoints: /kookoo, /api/ivr/webhook, /webhook`);
   console.log(`WebSocket endpoint: ${WS_PATH}`);
   console.log(`Models: brain=${BRAIN_MODEL} stt=${STT_MODEL} tts=${TTS_MODEL} voice=${process.env.TTS_VOICE || 'hannah'}`);
