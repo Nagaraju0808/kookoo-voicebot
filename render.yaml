@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: kookoo-voicebot
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: SIP_NUMBER
+        value: "531486"
+      - key: PORT
+        value: "3000"
