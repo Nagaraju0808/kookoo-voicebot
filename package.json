@@ -1,0 +1,24 @@
+{
+  "name": "kookoo-groq-voicebot",
+  "version": "1.0.0",
+  "description": "AI voice agent for KooKoo telephony powered by Groq (Whisper STT + Qwen brain + Orpheus TTS)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test:spec": "node scripts/telephony-spec-test.mjs",
+    "ingest": "node scripts/ingest.mjs",
+    "query": "node scripts/query.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "groq-sdk": "^1.6.0",
+    "mammoth": "^1.12.3",
+    "pdf-parse": "^2.4.5",
+    "ws": "^8.18.0"
+  }
+}

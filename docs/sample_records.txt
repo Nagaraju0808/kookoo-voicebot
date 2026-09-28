@@ -1,0 +1,36 @@
+SAMPLE CLINIC RECORDS (DEMO DATA — replace with real records before production)
+
+Patient: Mrs Anita Rao
+DOB: 12 March 1962
+Last visit: 8 September 2026, Dr Mehta, General Medicine.
+Blood pressure: 138/88 mmHg (elevated, stage 1 hypertension). Doctor advised home
+monitoring twice daily and a low-sodium diet.
+Medicines: Amlodipine 5 mg once daily after breakfast; Metformin 500 mg twice daily
+with meals.
+Allergies: Penicillin (rash reported 2019).
+Next appointment: 6 October 2026 at 10:30 AM, Dr Mehta.
+Notes: Reports mild knee pain while climbing stairs; recommended physiotherapy
+review at the next visit.
+
+Patient: Mr Rajesh Kumar
+DOB: 4 July 1975
+Last visit: 2 September 2026, Dr Sharma, Cardiology.
+Blood pressure: 126/80 mmHg (normal, on treatment).
+Medicines: Telmisartan 40 mg once daily in the morning.
+Allergies: None recorded.
+Next appointment: 30 September 2026 at 4:00 PM, Dr Sharma, for an ECG review.
+
+Patient: Ms Fatima Sheikh
+DOB: 22 November 1988
+Last visit: 15 September 2026, Dr Iyer, General Medicine.
+Blood pressure: 118/76 mmHg (normal).
+Medicines: Iron + folic acid supplement once daily for three months.
+Allergies: Sulfa drugs (avoid; documented 2024).
+Next appointment: 13 October 2026 at 12:00 noon, Dr Iyer.
+
+Clinic information:
+Visiting hours: Monday to Saturday, 9:00 AM to 7:00 PM. Sunday closed.
+Front desk: extension 0. Emergency: call the ambulance line.
+Prescription refills: request at least 48 hours in advance at the front desk.
+Record copies: available at the front desk with a photo ID, one working day notice.
+Address: 2nd floor, Sunrise Plaza, MG Road.
